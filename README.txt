@@ -5,6 +5,8 @@ by Rob Faludi (http://faludi.com),
    Jordan Husney (http://jordan.husney.com),
    & Ted Hayes (http://log.liminastudio.com),
 
+https://code.google.com/p/xig/source/browse
+https://code.google.com/p/xig/wiki/DownloadFiles?tm=2
 
 I. INTRODUCTION
 
