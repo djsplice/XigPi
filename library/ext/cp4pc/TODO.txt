@@ -1,0 +1,55 @@
+Configuration
+=============
+
+ADDP
+====
+- Send error responses (if necessary) for unsupported commands.
+- Consider supporting commands to configure the iDigi server settings via ADDP.
+   - Requires addition of persistent state (would be easy through settings, just not sure if we want to do it.)
+- Support configuration commands?
+
+EDP
+===
+- Support other push methods than HTTP PUT (like the Messaging Facility).
+- Support passwords.
+- Change to using a thread instead of a state machine with tick?
+
+RCI
+===
+- Edit query_settings and query_state so developer.idigi.com lists useful information for Device Properties.
+- Fully support the do_command target "zigbee"?
+- Fix descriptors to match gateways more closely.
+- remove file management, unless root folder is specified.
+
+ZigBee
+======
+- Support series 1 radios
+
+GUI
+===
+- show power button as disabled when polling fails.  Also, return from grey on reconnect.
+- logs:
+  - scroll lock
+  - clear
+  - filter? (http://dojotoolkit.org/reference-guide/1.7/dojox/grid/EnhancedGrid/plugins/Filter.html#dojox-grid-enhancedgrid-plugins-filter)
+  - save to file (http://dojotoolkit.org/reference-guide/1.7/dojox/grid/EnhancedGrid/plugins/Exporter.html#dojox-grid-enhancedgrid-plugins-exporter)
+
+XIG
+===
+- local ip address isn't valid until after iDigi connection completes.
+- Create .pro file for XBee
+
+Windows
+=======
+- working with Python 2.7
+
+Mac
+===
+- works with Python 2.7
+
+Linux
+=====
+-test
+
+Release
+=======

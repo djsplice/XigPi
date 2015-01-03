@@ -1,0 +1,7 @@
+# Modified the following to disable iDIGI integration / SSL checking
+ 
+./library/ext/cp4pc/rci/__init__.py~
+./library/ext/cp4pc/rci/edp.py~
+./sessions/http.py~
+./xig_config_default.py~
+./settings.json~

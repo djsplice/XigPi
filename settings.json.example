@@ -1,0 +1,1 @@
+{"baud": 9600, "com_port": "/dev/ttyUSB0", "local_port": 8000, "company": "Digi International", "mac": 202481602061361, "version": "1.5.1b19", "device_type": "XIG PC Gateway", "idigi_certs_file": "idigi-ca-cert-public.crt", "idigi_server": "my.idigi.com", "ip_address": "0.0.0.0", "device_id": "00000000-00000000-B827EBFF-FFF6E431"}

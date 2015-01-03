@@ -1,0 +1,391 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>XIG</title>
+<script src="/s/js/xig.js" type="text/javascript"></script>
+<script src="/s/js/index.js" type="text/javascript"></script>
+<style type="text/css">
+    @import url("https://ajax.googleapis.com/ajax/libs/dojo/1.7/dojo/resources/dojo.css");
+    @import url("https://ajax.googleapis.com/ajax/libs/dojo/1.7/dijit/themes/tundra/tundra.css");
+    @import url("https://ajax.googleapis.com/ajax/libs/dojo/1.7/dojox/grid/resources/tundraGrid.css");
+</style>
+
+<style type="text/css">
+#preloader {
+  width:100%; height:100%; margin:0; padding:0;
+  background:#ddd url("https://ajax.googleapis.com/ajax/libs/dojo/1.4/dojox/image/resources/images/loading.gif") no-repeat center center;
+  position:absolute;
+  z-index:999;
+}
+</style>
+
+<script src="https://www.google.com/jsapi" type="text/javascript"> </script>
+<script type="text/javascript">
+    djConfig = {afterOnLoad: true,
+    			parseOnLoad: false, 
+    			isDebug: true,
+				modulePaths: { 
+    				"dojo": "https://ajax.googleapis.com/ajax/libs/dojo/1.7/dojo", 
+    				"dijit": "https://ajax.googleapis.com/ajax/libs/dojo/1.7/dijit", 
+    				"dojox": "https://ajax.googleapis.com/ajax/libs/dojo/1.7/dojox" 
+  				}}; 
+    google.load("dojo", "1.7");
+
+    google.setOnLoadCallback(function(){
+    	dojo.require("dojo.parser");
+    	dojo.require("dojo.data.ItemFileWriteStore");
+    	dojo.require("dijit.layout.BorderContainer");
+		dojo.require("dijit.layout.ContentPane");
+		dojo.require("dijit.Tooltip");
+		dojo.require("dijit.layout.TabContainer");
+        dojo.require("dojox.grid.DataGrid");
+        
+		dojo.addOnLoad(function() {
+            // parse the Dojo HTML tags and remove the loading screen
+            dojo.parser.parse();
+
+            // initialize xig javascript code
+            xig.init();
+            
+            //TODO: move handler functions to here from xig.js?
+
+            // initialize values on the page.
+            // iDigi settings
+            xig.settings.get({key:'device_id', notify: true, on_load:function(value) {dojo.byId('idigi-device_id').innerHTML=value.slice(18);}});
+            xig.settings.get({key:'description', notify: true, on_load:function(value) {dojo.byId('idigi-description').value=value;}});
+            
+            // XBee settings
+            xig.settings.get({key:'baud', notify: true, on_load:function(value) {
+            	var select_obj = dojo.byId('xbee-baud');
+            	for(var i=0; i < select_obj.options.length; i++) {
+            		if (select_obj.options[i].value == value) {
+            			select_obj.options[i].selected = true;
+            			break;
+            		}
+            	}
+            }});
+            xig.settings.get({key:'com_port', notify: true, on_load:function(value) {
+                var select_obj = dojo.byId('xbee-com_port');
+                for(var i=0; i < select_obj.options.length; i++) {
+                    if (select_obj.options[i].value == value) {
+                        select_obj.options[i].selected = true;
+                        break;
+                    }
+                }            	
+            }});
+            
+            // set up logging objects
+            /*set up layout*/
+            var layout = [[
+              {'name': 'ID', 'field': 'id', 'width': '35px'},
+              {'name': 'Timestamp', 'field': 'asctime', 'width': '150px'},
+              {'name': 'Severity', 'field': 'levelname', 'width': '75px'},
+              {'name': 'Logger', 'field': 'name', 'width': '100px'},
+              {'name': 'Message', 'field': 'msg', 'width': 'auto'}
+            ]];
+
+            /*create a new grid:*/
+            var grid = new dojox.grid.DataGrid({
+                id: 'grid',
+                store: xig.logs.store,
+                structure: layout,
+                selectable: true,
+                rowSelector: '20px' //remove?
+                },
+              document.createElement('div'));
+
+            /*append the new grid to the div*/
+            dojo.byId("logsGrid").appendChild(grid.domNode);
+
+            /*Call startup() to render the grid*/
+            grid.startup();            
+            
+            // remove the loading screen
+            dojo.fadeOut({
+                       node:"preloader",
+                       duration:200,
+                       onEnd: function(){
+                               dojo.style("preloader", "display", "none");
+                       }
+               }).play();
+        });     
+    });
+</script>	
+
+<link href="/s/css/index.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body class="tundra">
+<div id="preloader"></div>
+<div id="container" class="body_coloring" dojoType="dijit.layout.BorderContainer" gutters="false" livesplitters="true">
+    <div id="header" dojoType="dijit.layout.ContentPane" region="top" splitter="false">
+        <a class="left" href="http://code.google.com/p/xig/">
+           <img src="/s/images/logo.png" />
+        </a>
+	    <div id="top">
+	       XBee Internet Gateway
+		</div>
+		<div id="power_div" class="right">
+		  <div id="power_button" class="power_icon" onClick="xig.power.toggle(true);">
+		  </div>
+		</div>
+	</div>
+    <div id="content_center" dojoType="dijit.layout.ContentPane" region="center" splitter="false">
+        <div dojoType="dijit.layout.BorderContainer" gutters="false" livesplitters="true" splitter="true">
+            <div class="body_coloring" dojoType="dijit.layout.TabContainer" region="center" splitter="true">
+                <div dojoType="dijit.layout.ContentPane" title="Configuration" selected="true">
+			        <div class="status_section">
+				        <div class="status">
+				            <h3 id="idigi" class="header">iDigi</h3>
+				            <br/>
+				            <div>
+					            <a class="img_box" href="https://www.idigi.com">
+					               <img src="/s/images/idigi-logo.gif" />
+					            </a>
+			                    <div>
+				                    <div id="idigi-status-param" class="parameter">
+				                        <span class="key">Status: </span>
+				                        <div class="value" id="idigi-status"></div>
+				                    </div>
+			                        <div id="idigi-device_id-param" class="parameter">
+			                            <span class="key">Device ID: </span>
+			                            <div class="value" id="idigi-device_id"></div>
+			                        </div>
+			                        <div id="idigi-description-param" class="parameter">
+			                            <span class="key">Description: </span>
+			                            <div class="value">
+			                                <input id="idigi-description" onChange="xig.settings.set({key:'description', value:this.value});"></input>
+			                            </div>
+			                        </div>
+			                    </div>
+			                </div>
+				        </div>
+			
+			            <div class="status">
+			                <h3 id="xbee" class="header">XBee</h3>
+			                <br/>
+			                <div>
+			                    <a class="img_box" href="http://www.digi.com/products/wireless-wired-embedded-solutions/zigbee-rf-modules/zigbee-mesh-module/">
+			                       <img height="100px" src="/s/images/xbee.png" />
+			                    </a>
+			                    <div>
+			                        <div id="xbee-status-param"class="parameter">
+			                            <span class="key">Status: </span>
+			                            <div class="value" id="xbee-status"></div>
+			                        </div>
+			                        <div id="xbee-eui-param" class="parameter">
+			                            <span class="key">EUI-64: </span>
+			                            <div class="value" id="xbee-eui"></div>
+			                        </div>
+			                        <div id="xbee-com_ports-param" class="parameter">
+			                            <span class="key">COM Port: </span>
+			                            <div class="value">
+			                                <select id="xbee-com_port" onChange="xig.settings.set({key:'com_port', value:this.options[this.selectedIndex].value});">
+			                                    <option selected="true"></option>
+			                                </select>
+			                            </div>
+			                        </div>
+			                        <div id="xbee-baud-param" class="parameter">
+			                            <span class="key">Baud: </span>
+			                            <div class="value">
+				                            <select id="xbee-baud" onChange="xig.settings.set({key:'baud', value:this.options[this.selectedIndex].value});">
+				                                <option>1200</option>
+				                                <option>2400</option>
+				                                <option>4800</option>
+				                                <option>9600</option>
+				                                <option>19200</option>
+				                                <option>38400</option>
+				                                <option>57600</option>
+				                                <option>115200</option>
+				                                <option>230400</option>
+				                            </select>
+				                        </div>
+			                        </div>
+			                    </div>
+			                </div>
+			            </div>
+			        </div>
+		        </div>
+		        <div dojoType="dijit.layout.ContentPane" title="Console">
+                    <div id="console-output">Use this interface to send and receive messages from the XBee Internet Gateway (XIG).  
+                    Send messages using the "Input:" box below.
+                    </div>
+                    <form onSubmit="xig.console.send(this.input.value); return false;">
+	                    <input type="text" style="visibility:hidden;display:none;" name="dummy"></input>
+	                    <span id="console-input-label">Input:</span>
+	                    <div id="console-input-wrapper">
+	                        <input id="console-input" name="input"></input>
+	                    </div>
+	                    <input type="submit" style="height: 0px; width: 0px; border: none; padding: 0px;" hideFocus="true" />
+                    </form>
+		        </div>
+                <div dojoType="dijit.layout.ContentPane" title="Help">
+                    <div dojoType="dijit.layout.TabContainer" tabPosition="left-h" tabStrip="true">
+	                    <div dojoType="dijit.layout.ContentPane" title="Getting Started" open="true">
+	                        The <a href="http://code.google.com/p/xig/">XBee Internet Gateway (XIG)</a> is an open source 
+	                        gateway that provides:
+	                        <ol class="list">
+	                            <li>Read and write access to I/O on remote XBees securely from the internet.</li>
+	                            <li>A simple serial interface to access internet resources (UDP, HTTP(s) with optional basic authentication, and others) through the XBee.</li>
+	                            <li>A simple serial interface to upload data to iDigi through the XBee.</li>
+	                        </ol>
+	                        The gateway code can be run on PC or a Digi ConnectPort X2/X3/X4/X8.
+	                        
+	                        <br/><br/>
+	                        When running on a PC, the XBee should be configured with the following:
+	                        <ul class="list">
+	                            <li>API mode firmware (not AT mode firmware).</li>
+	                            <li>ATAO = 3 (allows the application to handle some ZDO commands)</li>
+	                            <li>Hardware flow control should be enabled (ATD7 = 1 and optionally ATD6 = 1)</li>
+	                            <li>Coordinator firmware (not strictly required, but is easier)</li>
+	                        </ul>
+	                        <a href="http://www.digi.com/support/productdetail?pid=3352&type=utilities">X-CTU</a> can be 
+	                        used to configure the XBee on a Windows computer.  Select the COM port and baud rate of the XBee
+	                        on the configuration page.  If the connection is successful, the XBee status should show success
+	                        and turn green.
+	                        
+	                        <br/><br/>
+	                        The iDigi connection should be automatic on both the Connectport and PC.  Make sure the gateway
+	                        has internet access (including a valid DNS server).
+	                        
+	                        <br/><br/>
+	                        The status of the XIG code itself is displayed and controlled using the button in the upper
+	                        right corner of this webpage.  The color gives the status of te XIG code:
+	                        <ul class="list">
+	                            <li>Green - XIG is running</li>
+	                            <li>Red - XIG is stopped</li>
+	                            <li>Grey - Unknown/Transitioning</li>
+	                        </ul>
+	                        Clicking on the button will cause the XIG to turn on/off.  The XIG will not run if the XBee or
+	                        iDigi status has an error (which will be displayed in red).
+	                        
+	                        <br/><br/>
+	                        The Console gives a user interface to for the XIG without using a remote XBee.  Type commands 
+	                        into the "Input:" field and press enter to send to the XIG.  A couple of good example commands
+	                        to try:
+	                        <ul class="list">
+	                            <li>help</li>
+	                            <li>time</li>
+	                            <li>http://google.com</li>
+	                        </ul>
+
+	                        <br/><br/>
+	                        The logs section on the bottom of the screen is included to give a more detailed view of what 
+	                        is happening in the XIG.  The logs show the communication with remote XBees and can help debug
+	                        applications.  The logs can be sorted by any of the columns (NOTE: sorting by the timestamp )
+	                        does NOT give chronological order; it is better to sort by the ID column for that).
+	                        
+	                    </div>
+	                    <div dojoType="dijit.layout.ContentPane" title="What is xig_config.py?" open="false">
+	                        "xig_config.py" is the custom configuration file for the XIG.  The XIG will try to import this 
+	                        file before importing the standard default file "xig_config_default.py".  For most applications
+	                        the default configuration file should be sufficient.  If you would like to
+	                        customize the configuration of the XIG, copy the file "xig_config_default.py" to be 
+	                        "xig_config.py" and make your changes there.  See the 
+	                        <a href="http://code.google.com/p/xig/wiki/UserDocumentation#V._CONFIGURATION">user docs</a>
+	                        for more information.
+	                    </div>
+	                    <div dojoType="dijit.layout.ContentPane" title="iDigi Connection isn't working" open="false">
+	                        The XIG should automatically connect to developer.idigi.com.  Make sure your XIG gateway has
+	                        internet access and can resolve developer.idigi.com.  You can test this on a PC by 
+	                        running "ping developer.idigi.com" from a command line.  If you are running the XIG on a
+	                        computer, make sure you are not using a Vendor ID on your iDigi account.  If you are running the
+	                        XIG on a Digi ConnectPort, you can contact 
+	                        <a href="http://www.digi.com/support/eservice/">Tech Support</a>.
+	                    </div>
+	                    <div dojoType="dijit.layout.ContentPane" title="How do I connect to my XBee on a PC?" open="false">
+	                        When running on a computer, the XIG connects to an XBee through a serial port.  This can use
+	                        either a standard RS-232 port or a USB-serial adaptor.  Make sure to select the correct COM port
+	                        and baud from the dropdown list on the Configuration tab.  If you are running on a Windows 
+	                        computer, you can use <a href="http://www.digi.com/support/productdetail?pid=3352&type=utilities">X-CTU</a>
+	                        to configure your XBee and test your connection to the XBee.  Make sure you have configured your
+	                        XBee with the following settings:
+	                        <ul class="list">
+	                            <li>API mode firmware (not AT mode firmware).</li>
+	                            <li>ATAO = 3 (allows the application to handle some ZDO commands)</li>
+	                            <li>Hardware flow control should be enabled (ATD7 = 1 and optionally ATD6 = 1)</li>
+	                            <li>Coordinator firmware (not strictly required, but is easier)</li>
+	                        </ul>
+	                    </div>
+	                    <div dojoType="dijit.layout.ContentPane" title="Known Issues/Limitations" open="false">
+	                       PC application does not support configuring Vendor Id when connection to iDigi through GUI.
+	                       <br/>
+	                       PC application only connects to developer iDigi server 
+	                       (<a href="http://developer.idigi.com">developer.idigi.com</a>).
+	                       <br/>
+	                       PC application requires XBee and iDigi to use Console tab (even though Console tab isn't 
+	                       using XBee and may not be using iDigi).
+	                       <br/>
+	                    </div>
+	                    <div dojoType="dijit.layout.ContentPane" title="Resources" open="false">
+		                    Learn more about <a href="http://idigi.com">iDigi</a>.
+		                    <br/>
+		                    Learn more about <a href="http://code.google.com/p/xig/">XIG</a> 
+		                    (<a href="http://code.google.com/p/xig/wiki/UserDocumentation">User Docs</a>).
+		                    <br/>
+		                    Run the XIG on a Digi <a href="http://www.digi.com/products/wireless-routers-gateways/gateways/connectportx2gateways#overview">ConnectPort X2</a>, 
+		                    available <a href="http://www.sparkfun.com/products/10569">here</a>.
+	                    </div>
+                    </div>
+                </div>
+            </div>
+            <div id="logs_pane" dojoType="dijit.layout.ContentPane" region="bottom" splitter="true">
+		        <div id='logs'>
+		            <h3 class='header'>Logs</h3>
+		            <div id="logsGrid"></div>
+		        </div>
+		    </div>
+		</div>
+    </div>
+    <div id="footer" dojoType="dijit.layout.ContentPane" region="bottom" splitter="false">
+        Copyright (c) 2012 Digi International, Rob Faludi, Jordan Husney, et al. All rights reserved.
+        Distributed Under the <a href="http://www.gnu.org/licenses/lgpl.html">LGPL</a> v3.0.
+    </div>
+</div>
+
+<div dojoType="dijit.Tooltip" connectId="power_div" position="before">
+    Gives the status of the XIG.<br/>
+    Green - XIG is running.<br/>
+    Red - XIG is stopped.<br/>
+    Grey - Unknown/Transitioning.<br/>  
+    Click the button to start/stop the XIG.
+</div>  
+
+<div dojoType="dijit.Tooltip" connectId="idigi" position="below">
+    iDigi Status and Settings.
+</div>
+<div dojoType="dijit.Tooltip" connectId="idigi-status-param" position="below">
+    iDigi Connection Status.  Will be either "Connected" or "Connecting..."
+</div>
+<div dojoType="dijit.Tooltip" connectId="idigi-device_id-param" position="below">
+    iDigi Device ID.  The full ID will have "00000000-00000000-" prepending to it.  This is based on a MAC address.
+</div>
+<div dojoType="dijit.Tooltip" connectId="idigi-description-param" position="below">
+    iDigi Description.  A user friendly description of the gateway that is sent to iDigi.
+</div>
+
+<div dojoType="dijit.Tooltip" connectId="xbee" position="below">
+    XBee Status and Settings.  Set the serial port and baud rate to connect to XBee.
+</div>
+<div dojoType="dijit.Tooltip" connectId="xbee-status-param" position="below">
+    XBee Network Status.  Based on the ATAI value received from the gateway.  
+    Set the serial port and baud rate to connect to the XBee.
+</div>
+<div dojoType="dijit.Tooltip" connectId="xbee-eui-param" position="below">
+    XBee EUI-64 (also know as the extended address, serial number, or MAC address).
+</div>
+<div dojoType="dijit.Tooltip" connectId="xbee-com_ports-param" position="below">
+    XBee serial port for the PC.
+</div>
+<div dojoType="dijit.Tooltip" connectId="xbee-baud-param" position="below">
+    XBee serial port baud rate.  Will most likely be 9600 or 115200.
+</div>
+
+<div dojoType="dijit.Tooltip" connectId="console-input" position="above">
+    Use this input to send commands to the XBee Internet Gateway (XIG).
+    Send "help" to get a list of supported commands.
+</div>
+
+</body>
+</html>
